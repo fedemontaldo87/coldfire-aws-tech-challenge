@@ -55,12 +55,6 @@ jobs:
         with:
           sarif_file: tfsec-report.sarif
 
-      # 🧪 Set up Go for Terratest
-      - name: 🧪 Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-
       # 🧪 Run Terratest from test/ directory
       - name: 🧪 Run Terratest from test/
         working-directory: ./test
