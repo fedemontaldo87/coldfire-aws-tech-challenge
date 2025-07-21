@@ -5,7 +5,7 @@
 terraform.tfvars
 *.tfplan
 *.binary
-*.json
+
 
 # Ignore any sensitive output or logs
 *.log
