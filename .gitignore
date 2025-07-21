@@ -33,16 +33,6 @@ coverage.*
 /test/*.log
 /test/*.txt
 
-# Evidence and diagrams (if generated)
-evidence/
-diagram/*.png
-diagram/*.svg
-infra.dot
-aws_diagram.*
-
-# PlantUML and temporary files
-*.puml
-plantuml.jar
 
 # OS-specific
 .DS_Store
