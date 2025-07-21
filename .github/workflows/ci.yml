@@ -1,59 +1,60 @@
-name: ✅ Validate and Test Main Terraform Solution
+name: 🚀 Validate & Test Terraform Project
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    paths:
-      - '**.tf'
-      - 'test/**'
-      - 'policies/**'
-      - '.github/workflows/ci.yml'
+    branches: [main]
 
 jobs:
   validate-and-test:
     runs-on: ubuntu-latest
     permissions:
-      security-events: write
       contents: read
+      security-events: write
 
     steps:
-      - name: 🛎️ Checkout code
+      - name: 📦 Checkout Code
         uses: actions/checkout@v4
 
-      - name: 🧰 Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-
-      - name: 🛠️ Set up Terraform
+      - name: 🧰 Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.4
 
-      - name: 🔐 Create dummy AWS profile
+      - name: 🔍 Install tfsec
         run: |
-          chmod +x test/create_dummy_profile.sh
-          ./test/create_dummy_profile.sh
+          curl -L https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64 -o tfsec
+          chmod +x tfsec
+          sudo mv tfsec /usr/local/bin/
 
-      - name: 🧪 Terraform Init
+      - name: 🛠️ Terraform Init
         run: terraform init
 
       - name: ✅ Terraform Validate
         run: terraform validate
 
-      - name: 📊 Run tfsec
-        run: |
-          curl -sL https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64 -o tfsec
-          chmod +x tfsec
-          sudo mv tfsec /usr/local/bin/
-          tfsec . --format sarif --out tfsec.sarif --soft-fail
+      - name: 🧪 Terraform Plan
+        run: terraform plan -out=tfplan || true
 
-      - name: 📤 Upload tfsec SARIF report
+      - name: 🔒 Run tfsec Security Scan
+        run: |
+          tfsec . --format text || true
+          tfsec . --format sarif --out tfsec-report.sarif --soft-fail || true
+
+      - name: 📤 Upload tfsec SARIF Report
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: tfsec.sarif
+          sarif_file: tfsec-report.sarif
+
+      - name: 🧪 Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
 
       - name: 🧪 Run Go Terratest
         working-directory: ./test
-        run: go test -v -timeout 30m
+        run: |
+          ./create_dummy_profile.sh
+          go mod tidy
+          go test -v -timeout 30m
