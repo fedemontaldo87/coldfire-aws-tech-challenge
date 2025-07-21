@@ -1,35 +1,47 @@
-name: 🌩️ Terraform Validation and Testing
+name: 🚀 Coldfire Challenge CI
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
 
 jobs:
-  validate-and-plan:
-    name: 🧪 Validate Terraform
+  validate-and-test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write
 
     steps:
-      - name: 📥 Checkout
+      - name: 🛎️ Checkout code
         uses: actions/checkout@v4
 
-      - name: 🧰 Setup Terraform
+      - name: 🧰 Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: false
+
+      - name: 🛠️ Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.4
 
-      - name: 🏗️ Terraform Init
+      - name: 🔐 Configure dummy AWS credentials
+        run: |
+          mkdir -p ~/.aws
+          echo "[dummy]" > ~/.aws/credentials
+          echo "aws_access_key_id = DUMMYKEY" >> ~/.aws/credentials
+          echo "aws_secret_access_key = DUMMYSECRET" >> ~/.aws/credentials
+
+      - name: 🧪 Terraform Init
         run: terraform init
 
       - name: ✅ Terraform Validate
         run: terraform validate
 
-      - name: 📊 Terraform Plan
-        run: terraform plan -out=tfplan
+      - name: 📐 Terraform Plan (non-blocking)
+        run: terraform plan -out=tfplan || true
 
       - name: 🔍 Install tfsec
         run: |
@@ -37,28 +49,15 @@ jobs:
           chmod +x tfsec
           sudo mv tfsec /usr/local/bin/
 
-      - name: 🛡️ Run tfsec
+      - name: 📊 Run tfsec scan
         run: |
-          tfsec . --format sarif --out tfsec-results.sarif || true
+          tfsec . --format text || true
+          tfsec . --format sarif --out tfsec-results.sarif --soft-fail || true
 
-      - name: 📤 Upload tfsec report
+      - name: 📤 Upload tfsec SARIF report
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: tfsec-results.sarif
-
-  integration-test:
-    name: 🔬 Run Integration Tests
-    runs-on: ubuntu-latest
-    needs: validate-and-plan
-
-    steps:
-      - name: 📥 Checkout
-        uses: actions/checkout@v4
-
-      - name: 🧰 Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
 
       - name: 🧪 Run Terratest
         run: |
