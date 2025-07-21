@@ -135,12 +135,8 @@ module "iam" {
   environment   = "dev"
   business_unit = "coldfire"
   account_id    = local.account_id
-
-  # Asumimos que el módulo maneja las políticas desde archivos o variables como logs_policy_json, images_policy_json, etc.
   logs_policy_json   = file("${path.module}/policies/ec2-logs-policy.json")
   images_policy_json = file("${path.module}/policies/s3_read_images.json")
-
-  # También podrías pasar inline_policy_json si usás políticas embebidas en lugar de archivos externos
 }
 
 
