@@ -1,16 +1,21 @@
-name: 🚀 Coldfire Challenge CI
+name: ✅ Validate and Test Main Terraform Solution
 
 on:
   push:
     branches: [ main ]
   pull_request:
+    paths:
+      - '**.tf'
+      - 'test/**'
+      - 'policies/**'
+      - '.github/workflows/ci.yml'
 
 jobs:
   validate-and-test:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       security-events: write
+      contents: read
 
     steps:
       - name: 🛎️ Checkout code
@@ -20,19 +25,16 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-          cache: false
 
       - name: 🛠️ Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.4
 
-      - name: 🔐 Configure dummy AWS credentials
+      - name: 🔐 Create dummy AWS profile
         run: |
-          mkdir -p ~/.aws
-          echo "[dummy]" > ~/.aws/credentials
-          echo "aws_access_key_id = DUMMYKEY" >> ~/.aws/credentials
-          echo "aws_secret_access_key = DUMMYSECRET" >> ~/.aws/credentials
+          chmod +x test/create_dummy_profile.sh
+          ./test/create_dummy_profile.sh
 
       - name: 🧪 Terraform Init
         run: terraform init
@@ -40,26 +42,18 @@ jobs:
       - name: ✅ Terraform Validate
         run: terraform validate
 
-      - name: 📐 Terraform Plan (non-blocking)
-        run: terraform plan -out=tfplan || true
-
-      - name: 🔍 Install tfsec
+      - name: 📊 Run tfsec
         run: |
-          curl -L https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64 -o tfsec
+          curl -sL https://github.com/aquasecurity/tfsec/releases/download/v1.28.1/tfsec-linux-amd64 -o tfsec
           chmod +x tfsec
           sudo mv tfsec /usr/local/bin/
-
-      - name: 📊 Run tfsec scan
-        run: |
-          tfsec . --format text || true
-          tfsec . --format sarif --out tfsec-results.sarif --soft-fail || true
+          tfsec . --format sarif --out tfsec.sarif --soft-fail
 
       - name: 📤 Upload tfsec SARIF report
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: tfsec-results.sarif
+          sarif_file: tfsec.sarif
 
-      - name: 🧪 Run Terratest
-        run: |
-          cd test
-          go test -v -timeout 30m
+      - name: 🧪 Run Go Terratest
+        working-directory: ./test
+        run: go test -v -timeout 30m
