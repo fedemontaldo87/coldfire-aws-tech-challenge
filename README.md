@@ -96,7 +96,6 @@ Due to limited access to a live AWS environment during the challenge timeframe, 
 - Subnet CIDRs adjusted if needed due to OCR errors in the original PDF
 - No HTTPS certificate implemented due to challenge scope
 
-
 ## References to Resources Used
 - Terraform Documentation: https://www.terraform.io/docs
 - AWS Provider: https://registry.terraform.io/providers/hashicorp/aws/latest/docs
