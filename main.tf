@@ -9,14 +9,6 @@ terraform {
   required_version = ">= 1.4.0"
 }
 
-provider "aws" {
-  region                      = var.region  # Use variable for flexibility (defaults to us-east-1 in variables.tf)
-  skip_credentials_validation = true
-  skip_metadata_api_check     = true
-  skip_requesting_account_id  = true
-  skip_region_validation      = true
-}
-
 locals {
   rhel_ami_id = "ami-099f85fc24d27c2a7"  # Hardcoded latest RHEL 9 AMI for us-east-1 (as of July 2025)
   account_id  = "123456789012"  # Dummy account ID for testing without real credentials
