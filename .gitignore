@@ -1,0 +1,51 @@
+# Terraform files
+*.tfstate
+*.tfstate.backup
+.terraform/
+terraform.tfvars
+*.tfplan
+*.binary
+*.json
+
+# Ignore any sensitive output or logs
+*.log
+*.bak
+*.tmp
+
+# Ignore IDE/editor metadata
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Go build/test files
+*.exe
+*.out
+*.test
+*.mod
+*.sum
+bin/
+coverage.*
+
+# Test output
+/test/__pycache__/
+/test/*.log
+/test/*.txt
+
+# Evidence and diagrams (if generated)
+evidence/
+diagram/*.png
+diagram/*.svg
+infra.dot
+aws_diagram.*
+
+# PlantUML and temporary files
+*.puml
+plantuml.jar
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Optional: logs created during development
+deployment_logs/
